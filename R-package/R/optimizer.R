@@ -43,11 +43,7 @@ mx.opt.sgd <- function(learning.rate,
     grad <- grad * rescale.grad
     if (!is.null(clip_gradient)){
       if(clip_gradient >= 0){
-          grad_ctx <- ctx(grad)
-          grad <- as.array(grad)
-          grad <- pmax(grad, -1 * clip_gradient)
-          grad <- pmin(grad, clip_gradient)
-          grad <- mx.nd.array(grad, grad_ctx)
+          grad <- mx.nd.clip(grad, -1 * clip_gradient, clip_gradient)
       } else {
         stop("Error: clip_gradient should be positive number.")
       }
