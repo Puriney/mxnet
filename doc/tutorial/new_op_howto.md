@@ -4,11 +4,11 @@ This note will walk you through the process of creating new MXNet operations (or
 
 We try to do our best to provide high speed operators for most common use cases. However, if you do find yourself in need of custom layers, like a novel loss for your research, you have two options:
 
-* 1) Use native language and it's matrix library (e.g. numpy in Python). This requires least effort and knowledge of MXNet. But impairs performance as it is CPU based.
+1. Use native language and it's matrix library (e.g. numpy in Python). This requires least effort and knowledge of MXNet. But impairs performance as it is CPU based.
 
-* 2) Use native language, mxnet.rtc and mxnet.ndarray. This gives you most of the performance of 3) and most of the convenience of 1), but requires more knowledge of MXNet. You can write CUDA kernels in python and compile with during runtime.
+2. Use native language, mxnet.rtc and mxnet.ndarray. This gives you most of the performance of 3) and most of the convenience of 1), but requires more knowledge of MXNet. You can write CUDA kernels in python and compile with during runtime.
 
-* 3) Use C++/MShadow(CUDA). This can be difficult if you are not familiar with MXNet, mashadow or Cuda, but it will give you the best performance.
+3. Use C++/MShadow(CUDA). This can be difficult if you are not familiar with MXNet, mashadow or Cuda, but it will give you the best performance.
 
 ## Python/Numpy
 Implementing an operator in Python is similar to creating one in C++ but simpler. Let's create a softmax operator for example. We start by subclassing `mxnet.operator.NumpyOp` and then override a few methods.
@@ -72,11 +72,14 @@ The complete code for this example can be found at `examples/numpy-ops/numpy_sof
 Again we use Softmax as an example. We start by subclassing `mxnet.operator.NDArrayOp` and then override a few methods.
 
 First we call our base constructor with `need_top_grad=False`:
+
+```python
 class NDArraySoftmax(mx.operator.NDArrayOp):
     def __init__(self):
         super(NDArraySoftmax, self).__init__(False)
         self.fwd_kernel = None
         self.bwd_kernel = None
+```        
 
 Then we declare our input and output
 ```python
@@ -104,7 +107,8 @@ Finally we have finished the preparation and ready to do the real thing:
         x = in_data[0]
         y = out_data[0]
         if self.fwd_kernel is None:
-            self.fwd_kernel = mx.rtc('softmax', [('x', x)], [('y', y)], """
+            self.fwd_kernel = mx.rtc('softmax', [('x', x)], [('y', y)], 
+"""
 int i = threadIdx.x + blockIdx.x*blockDim.x;
 float max_x = x[i*x_dims[1]];
 for (int j = 1; j < x_dims[1]; ++j) {
